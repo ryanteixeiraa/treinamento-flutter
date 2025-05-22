@@ -1,43 +1,126 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:treinamento/models/tutorial_model.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:treinamento/models/tutorial_model.dart'; // Ajuste o caminho se necessário
 
 class TutorialController extends ChangeNotifier {
-  final List<TutorialModel> _tutorials = [
-    TutorialModel(
-      id: '1',
-      titulo: 'Tutorial de Segurança',
-      subtitulo: 'Aprenda normas de segurança no trabalho',
-      icone: Icons.health_and_safety,
-    ),
-    TutorialModel(
-      id: '2',
-      titulo: 'Treinamento Técnico',
-      subtitulo: 'Capacitação para operação de máquinas',
-      icone: Icons.engineering,
-    ),
-  ];
+  List<TutorialModel> _tutoriais = [];
+  bool _isLoading = true;
+  static const String _fileName = 'tutoriais_persistidos.json'; // Nome do arquivo JSON
 
-  // ✅ Getter para acessar os tutoriais
-  List<TutorialModel> get tutorials => List.unmodifiable(_tutorials);
+  List<TutorialModel> get tutorials => List.unmodifiable(_tutoriais);
+  bool get isLoading => _isLoading;
 
-  // ✅ Adiciona um tutorial novo
-  void addTutorial(TutorialModel tutorial) {
-    _tutorials.add(tutorial);
-    notifyListeners();
+  TutorialController() {
+    _carregarTutoriaisDoArquivo();
   }
 
-  // ✅ Atualiza tutorial existente
-  void updateTutorial(TutorialModel updated) {
-    final index = _tutorials.indexWhere((t) => t.id == updated.id);
-    if (index != -1) {
-      _tutorials[index] = updated;
-      notifyListeners();
+  // --- Lógica de Persistência (agora dentro do Controller) ---
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/$_fileName');
+  }
+
+  Future<void> _salvarTutoriaisNoArquivo() async {
+    try {
+      final file = await _localFile;
+      final List<Map<String, dynamic>> jsonData =
+      _tutoriais.map((tutorial) => tutorial.toJson()).toList();
+      await file.writeAsString(jsonEncode(jsonData));
+      print("Controller: Tutoriais salvos com sucesso em: ${file.path}");
+    } catch (e) {
+      print("Controller: ERRO AO SALVAR TUTORIAIS: $e");
+      // Considerar como lidar com o erro (talvez notificar a UI)
     }
   }
 
-  // ✅ Remove tutorial por ID
-  void removeTutorial(String id) {
-    _tutorials.removeWhere((t) => t.id == id);
+  Future<void> _carregarTutoriaisDoArquivo() async {
+    _isLoading = true;
+    notifyListeners(); // Notifica que o carregamento começou
+
+    try {
+      final file = await _localFile;
+      if (!await file.exists()) { // Corrigido aqui também, usar await
+        _tutoriais = [];
+        print("Controller: Arquivo de tutoriais não encontrado. Iniciando com lista vazia.");
+      } else {
+        final contents = await file.readAsString();
+        if (contents.isEmpty) {
+          _tutoriais = [];
+          print("Controller: Arquivo de tutoriais vazio. Iniciando com lista vazia.");
+        } else {
+          final List<dynamic> jsonData = jsonDecode(contents);
+          _tutoriais = jsonData.map((item) => TutorialModel.fromJson(item)).toList();
+          print("Controller: Tutoriais carregados com sucesso: ${_tutoriais.length} itens.");
+        }
+      }
+    } catch (e) {
+      print("Controller: Erro ao carregar tutoriais do arquivo: $e");
+      _tutoriais = []; // Em caso de erro, começa com lista vazia para evitar crash
+    }
+
+    _isLoading = false;
+    notifyListeners(); // Notifica que o carregamento terminou
+  }
+
+  // --- Métodos CRUD para manipular os tutoriais ---
+
+  Future<void> addTutorial(TutorialModel tutorial) async {
+    // Adiciona à lista em memória
+    // Para melhor imutabilidade e para garantir que o Provider detecte a mudança
+    // quando a referência da lista muda:
+    _tutoriais = List<TutorialModel>.from(_tutoriais)..add(tutorial);
+
+    notifyListeners(); // Notifica a UI imediatamente
+    await _salvarTutoriaisNoArquivo(); // Salva no arquivo
+  }
+
+  Future<void> updateTutorial(TutorialModel updatedTutorial) async {
+    final index = _tutoriais.indexWhere((t) => t.id == updatedTutorial.id);
+    if (index != -1) {
+      // Cria uma nova lista para imutabilidade
+      _tutoriais = List<TutorialModel>.from(_tutoriais);
+      _tutoriais[index] = updatedTutorial;
+      notifyListeners();
+      await _salvarTutoriaisNoArquivo();
+    }
+  }
+
+  Future<void> removeTutorial(String id) async {
+    // Cria uma nova lista para imutabilidade
+    _tutoriais = List<TutorialModel>.from(_tutoriais)..removeWhere((t) => t.id == id);
     notifyListeners();
+    await _salvarTutoriaisNoArquivo();
+  }
+
+  // Método de exemplo para sua tela AddTutorialScreen chamar
+  // Você passaria os dados do formulário para este método
+  void adicionarNovoTutorialDaTela(String titulo, String subtitulo, IconData icone) {
+    final novoId = DateTime.now().millisecondsSinceEpoch.toString(); // ID único simples
+    final novoTutorial = TutorialModel(
+      id: novoId,
+      icone: icone,
+      titulo: titulo,
+      subtitulo: subtitulo,
+    );
+    addTutorial(novoTutorial);
+  }
+
+  // Para exportar/debug
+  // CORREÇÃO AQUI:
+  Future<File?> getArquivoJson() async {
+    final file = await _localFile;
+    if (await file.exists()) { // Adicionado await aqui
+      return file;
+    } else {
+      return null;
+    }
   }
 }

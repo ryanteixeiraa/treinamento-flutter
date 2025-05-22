@@ -16,7 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
 
   final List<Map<String, String>> users = [
-    {'username': 'admin', 'password': 'admin123', 'role': 'admin'},
+    {'username': 'admin', 'password': '123', 'role': 'admin'},
     {'username': 'user', 'password': 'user123', 'role': 'user'},
   ];
 
