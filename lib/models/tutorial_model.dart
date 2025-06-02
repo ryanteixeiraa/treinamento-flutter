@@ -2,21 +2,21 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-// Se for usar o share_plus para exportar:
-// import 'package:share_plus/share_plus.dart';
+import 'package:flutter/material.dart';
 
-// --- Seu TutorialModel (deixe como está) ---
 class TutorialModel {
   final String id;
   final IconData icone;
   final String titulo;
   final String subtitulo;
+  final String? nomeModelo3D; // <<< NOVO CAMPO (pode ser nulo se nem todo tutorial tiver RA)
 
   TutorialModel({
     required this.id,
     required this.icone,
     required this.titulo,
     required this.subtitulo,
+    this.nomeModelo3D, // <<< NOVO PARÂMETRO
   });
 
   Map<String, dynamic> toJson() => {
@@ -24,6 +24,7 @@ class TutorialModel {
     'icone': icone.codePoint,
     'titulo': titulo,
     'subtitulo': subtitulo,
+    'nomeModelo3D': nomeModelo3D, // <<< ADICIONAR AO JSON
   };
 
   factory TutorialModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +33,7 @@ class TutorialModel {
       icone: IconData(json['icone'], fontFamily: 'MaterialIcons'),
       titulo: json['titulo'],
       subtitulo: json['subtitulo'],
+      nomeModelo3D: json['nomeModelo3D'], // <<< LER DO JSON
     );
   }
 }

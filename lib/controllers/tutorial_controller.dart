@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:treinamento/models/tutorial_model.dart'; // Ajuste o caminho se necessário
+import 'package:treinamento/models/tutorial_model.dart';
 
 class TutorialController extends ChangeNotifier {
   List<TutorialModel> _tutoriais = [];
   bool _isLoading = true;
-  static const String _fileName = 'tutoriais_persistidos.json'; // Nome do arquivo JSON
+  static const String _fileName = 'tutoriais_persistidos.json';
 
   List<TutorialModel> get tutorials => List.unmodifiable(_tutoriais);
   bool get isLoading => _isLoading;
@@ -15,8 +15,6 @@ class TutorialController extends ChangeNotifier {
   TutorialController() {
     _carregarTutoriaisDoArquivo();
   }
-
-  // --- Lógica de Persistência (agora dentro do Controller) ---
 
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
@@ -37,17 +35,16 @@ class TutorialController extends ChangeNotifier {
       print("Controller: Tutoriais salvos com sucesso em: ${file.path}");
     } catch (e) {
       print("Controller: ERRO AO SALVAR TUTORIAIS: $e");
-      // Considerar como lidar com o erro (talvez notificar a UI)
     }
   }
 
   Future<void> _carregarTutoriaisDoArquivo() async {
     _isLoading = true;
-    notifyListeners(); // Notifica que o carregamento começou
+    notifyListeners();
 
     try {
       final file = await _localFile;
-      if (!await file.exists()) { // Corrigido aqui também, usar await
+      if (!await file.exists()) {
         _tutoriais = [];
         print("Controller: Arquivo de tutoriais não encontrado. Iniciando com lista vazia.");
       } else {
@@ -63,29 +60,22 @@ class TutorialController extends ChangeNotifier {
       }
     } catch (e) {
       print("Controller: Erro ao carregar tutoriais do arquivo: $e");
-      _tutoriais = []; // Em caso de erro, começa com lista vazia para evitar crash
+      _tutoriais = [];
     }
 
     _isLoading = false;
-    notifyListeners(); // Notifica que o carregamento terminou
+    notifyListeners();
   }
 
-  // --- Métodos CRUD para manipular os tutoriais ---
-
   Future<void> addTutorial(TutorialModel tutorial) async {
-    // Adiciona à lista em memória
-    // Para melhor imutabilidade e para garantir que o Provider detecte a mudança
-    // quando a referência da lista muda:
     _tutoriais = List<TutorialModel>.from(_tutoriais)..add(tutorial);
-
-    notifyListeners(); // Notifica a UI imediatamente
-    await _salvarTutoriaisNoArquivo(); // Salva no arquivo
+    notifyListeners();
+    await _salvarTutoriaisNoArquivo();
   }
 
   Future<void> updateTutorial(TutorialModel updatedTutorial) async {
     final index = _tutoriais.indexWhere((t) => t.id == updatedTutorial.id);
     if (index != -1) {
-      // Cria uma nova lista para imutabilidade
       _tutoriais = List<TutorialModel>.from(_tutoriais);
       _tutoriais[index] = updatedTutorial;
       notifyListeners();
@@ -94,16 +84,13 @@ class TutorialController extends ChangeNotifier {
   }
 
   Future<void> removeTutorial(String id) async {
-    // Cria uma nova lista para imutabilidade
     _tutoriais = List<TutorialModel>.from(_tutoriais)..removeWhere((t) => t.id == id);
     notifyListeners();
     await _salvarTutoriaisNoArquivo();
   }
 
-  // Método de exemplo para sua tela AddTutorialScreen chamar
-  // Você passaria os dados do formulário para este método
   void adicionarNovoTutorialDaTela(String titulo, String subtitulo, IconData icone) {
-    final novoId = DateTime.now().millisecondsSinceEpoch.toString(); // ID único simples
+    final novoId = DateTime.now().millisecondsSinceEpoch.toString();
     final novoTutorial = TutorialModel(
       id: novoId,
       icone: icone,
@@ -113,11 +100,9 @@ class TutorialController extends ChangeNotifier {
     addTutorial(novoTutorial);
   }
 
-  // Para exportar/debug
-  // CORREÇÃO AQUI:
   Future<File?> getArquivoJson() async {
     final file = await _localFile;
-    if (await file.exists()) { // Adicionado await aqui
+    if (await file.exists()) {
       return file;
     } else {
       return null;

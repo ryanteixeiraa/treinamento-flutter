@@ -13,11 +13,7 @@ dependencies:
     sdk: flutter
   shared_preferences: ^2.2.0
 
-  path_provider: ^2.0.15 # Para encontrar o diretório correto para salvar arquivos
-  # Para compartilhar/exportar o arquivo (opcional, mas útil para o "download")
-  # share_plus: ^7.0.0
-  # ou para acesso mais direto ao armazenamento externo (requer mais cuidado com permissões)
-  # permission_handler: ^10.2.0
+  path_provider: ^2.1.2
 
   # Ícones adicionais para iOS e Material Design
   cupertino_icons: ^1.0.8
@@ -31,6 +27,12 @@ dependencies:
   # Fonte personalizada
   google_fonts: ^6.1.0
 
+  # Implementação da RA
+  ar_flutter_plugin: ^0.7.3
+
+  # Banco de Dados
+  sqflite: ^2.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -39,3 +41,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/models/planta.glb
