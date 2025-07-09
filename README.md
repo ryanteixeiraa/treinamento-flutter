@@ -1,3 +1,8 @@
+![TreinaLab](https://github.com/user-attachments/assets/4b6b1a2a-9835-434a-bc09-29846ef88e9d)
+
+
+
+
 📱 Bem-vindo ao TreinaLab
 Aplicativo móvel desenvolvido em Flutter com foco em capacitação de colaboradores e treinamentos técnicos. O TreinaLab oferece tutoriais interativos, gerenciamento de conteúdo e proposta futura de simulações com Realidade Aumentada (RA).
 
